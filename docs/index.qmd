@@ -1,0 +1,140 @@
+---
+title: "Análise de dossel"
+author: Gabriel de Freitas Pereira, Giovanna Mendonça Stefani 
+author-title: Autores
+lang: pt
+format:
+  html:
+    theme: minty
+    toc: true
+    code-fold: true
+    code-summary: "Mostrar código"
+    number-sections: true
+---
+
+```{r setup, include=FALSE, echo = FALSE}
+# install.packages( "devtools" )
+# install.packages( "BiocManager" )
+# install.packages( "rgdal" )
+# install.packages( "raster" )
+# 
+# BiocManager::install( "EBImage" )
+# devtools::install_github( "JoshOBrien/exiftoolr" )
+# devtools::install_git( "https://gitlab.com/fchianucci/coveR" )
+library( exiftoolr )
+library( coveR )
+library( raster ) 
+library( DT )
+#install_exitfool( ) 
+```
+
+# Imagem que será analisada
+
+\  Em Junho de 2022 eu (Gabriel) participei da realização de um inventário em Itapetininga, onde tirei essa foto com o meu celular. E na última sexta-feira (19/08/2022) saiu um paper muito interessante (o qual pode ser acessado nesse [link](https://www.biorxiv.org/content/10.1101/2022.01.13.475850v1)) que apresenta o pacote coveR, o qual possibilita análises de dossel a partir de uma simples foto feita pelo celular. Com isso, nós resolvemos gerar uma análise e testar as funcionalidades do pacote.
+
+![](eucaliptos_itapetininga.jpeg)
+
+# Contrastando imagem
+
+\  O seguinte gráfico, gerado com a função `open_blue` permite maior contraste entre os pixels do céu e do dossel, facilitando a classificação da imagem.
+
+```{r}
+#| fig-cap: Canal azul da foto.
+
+image <- "C:/Users/OppenSocial/Desktop/digital_cover_photography/docs/eucaliptos_itapetininga.jpeg"
+img1 <- open_blue( image, which.blue = 3 )
+
+plot( img1, 
+      col = gray.colors( 10, start = 0, end = 1 ), 
+      main = "Imagem contrastada" )
+```
+
+# Classificação dos pixels
+
+\  Agora será feita a classificação dos pixels da imagem gerada para obter uma imagem binária do céu (1) e do dossel (0). O padrão é utilizar o método `Minimum`, mas outros métodos disponíveis podem ser encontrados e estudados [aqui](https://imagej.net/plugins/auto-threshold).
+
+```{r}
+#| fig-cap: Imagem binária, onde céu é branco e dossel preto.
+
+img2 <- thd_blue( img1, method = "Minimum" )
+
+plot( img2, 
+      main = "Imagem binária - método: Mínimo", 
+      col = c( "black", "white" ), 
+      legend = FALSE )
+legend( "topright", 
+        col = c("black", "white"),
+        legend = c("pres", "abs"), 
+        pch = 20, 
+        cex = 0.8 )
+```
+
+# Gerando 'gaps'
+
+\  A seguinte função a ser usada pega a imagem binária gerada (0: dossel; 1: gap) e identifica cada gap único. Em seguida, ele retorna um raster onde cada lacuna distinta tem um valor numérico progressivo > 0.
+
+```{r}
+#| fig-cap: gaps nivelados.
+
+img3 <- label_gaps( img2 )
+
+plot( img3, 
+      col = c( "black", rainbow( 3000, start = 0, end = 1) ), 
+      main = "Espaços no dossel nivelados",
+      legend = FALSE)
+```
+
+# Classificação dos 'gaps' com base no tamanho deles
+
+\  Existem basicamente dois métodos para classificar as lacunas com base em seus (pixel)
+Tamanho. Um método muito eficaz é o proposto por [Macfarlane et al. 2007b](https://www.sciencedirect.com/science/article/abs/pii/S0168192307001177)
+que consideram grandes gaps (gL) aqueles maiores que 1,3% da área da imagem (este
+valor pode ser variado na função `extract_gap`).
+
+\  Alternativamente, podemos usar o método do grande gap proposto por [Alivernini et al. 2018](https://link.springer.com/article/10.1007/s00468-018-1666-3)
+que é baseado na distribuição estatística do tamanho da lacuna dentro
+imagens.
+
+\  Comparado com o outro método, este é dependente da densidade do dossel, pois o
+o limiar de abertura grande variou com o dossel real considerado.
+Ambos os métodos são implementados na função `extract_gap`:
+
+```{r}
+df1 <- extract_gap( img3, gapmethod = "macfarlane" ) 
+options( warn = -1 )
+DT::datatable( df1 ) 
+```
+
+\  A função `extract_gap` retorna um dataframe de pixels classificados em
+Classes ‘Canopy’, ‘Small_gap’ e ‘Large_gap’. 'Var1'>0 identifica cada
+região do intervalo, 'Freq' é o número de pixels em cada intervalo, enquanto 'NR' é
+o tamanho da imagem.
+
+\  Uma vez que classificamos as lacunas em lacunas grandes e pequenas usando um dos dois
+métodos acima, a função `get_canopy` estima os atributos do dossel
+das seguintes equações modificadas da lei de Beer-Lambert [Macfarlane et al. 2007a](https://www.sciencedirect.com/science/article/abs/pii/S0168192306003376).
+A inversão para área foliar requer parametrização de uma extinção
+do coeficiente k, que por padrão é definido como 0,5 (ângulo da folha esférica
+distribuição)
+
+```{r}
+out.cnp <- get_canopy( df1, k = 0.85 )
+DT::datatable( out.cnp )
+```
+
+# Gerando imagem final classificada
+
+```{r}
+#| fig-cap: Imagem classificada por tamanhos dos gaps.
+
+cnp.img <- canopy_raster( img3, df1 )
+plot( cnp.img, 
+      col = gray.colors( 3, start = 0, end = 1 ),
+      main = "Imagem classificada",
+      legend = FALSE )
+# ou simplesmente encurtando todo o script (usando argumentos padrão):
+# rst <- image %>% open_blue() %>% thd_blue() %>% label_gaps
+# dfr <- rst %>% extract_gap()
+# cnp.img <- canopy_raster( rst, dfr )
+```
+

@@ -1,2 +1,2 @@
-# digital_cover_photography
-DCP
+# DCP
+Análise de dossel a partir de imagem feita por celular.

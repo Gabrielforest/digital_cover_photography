@@ -12,6 +12,8 @@ format:
     number-sections: true
 ---
 
+<div style="text-align: justify"> 
+
 ```{r setup, include=FALSE, echo = FALSE}
 # install.packages( "devtools" )
 # install.packages( "BiocManager" )
@@ -63,8 +65,8 @@ plot( img2,
       col = c( "black", "white" ), 
       legend = FALSE )
 legend( "topright", 
-        col = c("black", "white"),
-        legend = c("pres", "abs"), 
+        col = c( "black", "white" ),
+        legend = c( "pres", "abs" ), 
         pch = 20, 
         cex = 0.8 )
 ```
@@ -79,7 +81,7 @@ legend( "topright",
 img3 <- label_gaps( img2 )
 
 plot( img3, 
-      col = c( "black", rainbow( 3000, start = 0, end = 1) ), 
+      col = c( "black", rainbow( 3000, start = 0, end = 1 ) ), 
       main = "Espaços no dossel nivelados",
       legend = FALSE)
 ```
@@ -138,3 +140,8 @@ plot( cnp.img,
 # cnp.img <- canopy_raster( rst, dfr )
 ```
 
+# Discussão
+
+\  É importante destacar que a imagem não é a ideal para esse tipo de análise, devido ao fato de que as partes da imagem que representam o tronco das árvores são consideradas como dossel pelas funções utilizadas, no entanto, as mesmas não representam a área de interesse do estudo. Sabendo disso, imagens mais focadas, e menos abrangentes apresentariam melhor qualidade. Logo, é indubitável que a quantidade de imagens feitas numa área de floresta plantada deve ser bastante grande para ser representrativa, considerando a pequena porção que pode ser analisada.  
+
+</div>

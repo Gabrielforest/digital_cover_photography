@@ -12,7 +12,7 @@ format:
     number-sections: true
 ---
 
-<div style="text-align: justify"> 
+
 
 ```{r setup, include=FALSE, echo = FALSE}
 # install.packages( "devtools" )
@@ -32,13 +32,21 @@ library( DT )
 
 # Imagem que será analisada
 
+<div style="text-align: justify"> 
+
 \  Em Junho de 2022 eu (Gabriel) participei da realização de um inventário em Itapetininga, onde tirei essa foto com o meu celular. E na última sexta-feira (19/08/2022) saiu um paper muito interessante (o qual pode ser acessado nesse [link](https://www.biorxiv.org/content/10.1101/2022.01.13.475850v1)) que apresenta o pacote coveR, o qual possibilita análises de dossel a partir de uma simples foto feita pelo celular. Com isso, nós resolvemos gerar uma análise e testar as funcionalidades do pacote.
+
+</div>
 
 ![](eucaliptos_itapetininga.jpeg)
 
 # Contrastando imagem
 
+<div style="text-align: justify"> 
+
 \  O seguinte gráfico, gerado com a função `open_blue` permite maior contraste entre os pixels do céu e do dossel, facilitando a classificação da imagem.
+
+</div>
 
 ```{r}
 #| fig-cap: Canal azul da foto.
@@ -53,7 +61,11 @@ plot( img1,
 
 # Classificação dos pixels
 
+<div style="text-align: justify"> 
+
 \  Agora será feita a classificação dos pixels da imagem gerada para obter uma imagem binária do céu (1) e do dossel (0). O padrão é utilizar o método `Minimum`, mas outros métodos disponíveis podem ser encontrados e estudados [aqui](https://imagej.net/plugins/auto-threshold).
+
+</div>
 
 ```{r}
 #| fig-cap: Imagem binária, onde céu é branco e dossel preto.
@@ -73,7 +85,11 @@ legend( "topright",
 
 # Gerando 'gaps'
 
+<div style="text-align: justify"> 
+
 \  A seguinte função a ser usada pega a imagem binária gerada (0: dossel; 1: gap) e identifica cada gap único. Em seguida, ele retorna um raster onde cada lacuna distinta tem um valor numérico progressivo > 0.
+
+</div>
 
 ```{r}
 #| fig-cap: gaps nivelados.
@@ -88,6 +104,8 @@ plot( img3,
 
 # Classificação dos 'gaps' com base no tamanho deles
 
+<div style="text-align: justify"> 
+
 \  Existem basicamente dois métodos para classificar as lacunas com base em seus (pixel)
 Tamanho. Um método muito eficaz é o proposto por [Macfarlane et al. 2007b](https://www.sciencedirect.com/science/article/abs/pii/S0168192307001177)
 que consideram grandes gaps (gL) aqueles maiores que 1,3% da área da imagem (este
@@ -101,11 +119,15 @@ imagens.
 o limiar de abertura grande variou com o dossel real considerado.
 Ambos os métodos são implementados na função `extract_gap`:
 
+</div>
+
 ```{r}
 df1 <- extract_gap( img3, gapmethod = "macfarlane" ) 
 options( warn = -1 )
 DT::datatable( df1 ) 
 ```
+
+<div style="text-align: justify"> 
 
 \  A função `extract_gap` retorna um dataframe de pixels classificados em
 Classes ‘Canopy’, ‘Small_gap’ e ‘Large_gap’. 'Var1'>0 identifica cada
@@ -118,6 +140,8 @@ das seguintes equações modificadas da lei de Beer-Lambert [Macfarlane et al. 2
 A inversão para área foliar requer parametrização de uma extinção
 do coeficiente k, que por padrão é definido como 0,5 (ângulo da folha esférica
 distribuição)
+
+</div>
 
 ```{r}
 out.cnp <- get_canopy( df1, k = 0.85 )
@@ -141,6 +165,8 @@ plot( cnp.img,
 ```
 
 # Discussão
+
+<div style="text-align: justify"> 
 
 \  É importante destacar que a imagem não é a ideal para esse tipo de análise, devido ao fato de que as partes da imagem que representam o tronco das árvores são consideradas como dossel pelas funções utilizadas, no entanto, as mesmas não representam a área de interesse do estudo. Sabendo disso, imagens mais focadas, e menos abrangentes apresentariam melhor qualidade. Logo, é indubitável que a quantidade de imagens feitas numa área de floresta plantada deve ser bastante grande para ser representrativa, considerando a pequena porção que pode ser analisada.  
 
